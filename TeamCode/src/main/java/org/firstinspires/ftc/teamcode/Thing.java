@@ -30,7 +30,7 @@ public class Thing extends LinearOpMode {
         fr = hardwareMap.get(DcMotor.class, "fr");
         //nectaropen = hardwareMap.get(Servo.class, "necter open");
         openpollen = hardwareMap.get(Servo.class, "open pollen");
-        shootLpollen = hardwareMap.get(DcMotor.class, "shoot L pollen");
+        //shootLpollen = hardwareMap.get(DcMotor.class, "shoot L pollen");
         fl.setDirection(DcMotor.Direction.REVERSE);
         bl.setDirection(DcMotor.Direction.REVERSE);
 
@@ -42,7 +42,7 @@ public class Thing extends LinearOpMode {
         };
 
         waitForStart();
-        ((DcMotorEx) shootLpollen).setVelocity(2000);
+        //((DcMotorEx) shootLpollen).setVelocity(2000);
         openpollen.setPosition(1);
         for (DcMotor motor : motors) {
             motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -62,28 +62,31 @@ public class Thing extends LinearOpMode {
             telemetry.update();
             //idle();
         }
-        sleep(5000);
+        for (DcMotor motor : motors) {
+            motor.setPower(0);
+        }
+        //sleep(5000);
         //SHOOT!!!!
-        openpollen.setPosition(0);
-        ((DcMotorEx) shootLpollen).setVelocity(2000);
-        sleep(5000);
-        openpollen.setPosition(1);
-        ((DcMotorEx) shootLpollen).setVelocity(1500);
+//        openpollen.setPosition(0);
+//        ((DcMotorEx) shootLpollen).setVelocity(2000);
+//        sleep(5000);
+//        openpollen.setPosition(1);
+//        ((DcMotorEx) shootLpollen).setVelocity(1500);
         turnC(0.5, 1800);
         while (opModeIsActive() && motors[0].isBusy()) {
             telemetry.addData("Target", target);
             telemetry.addData("Current", motors[0].getCurrentPosition());
             telemetry.update();
         }
-        //trafeLeft(0.5, 800);
-        //while (opModeIsActive() && motors[0].isBusy()) {
+        for (DcMotor motor : motors) {
+            motor.setPower(0);
+        }
+        strafeLeft(0.5, 800);
+        while (opModeIsActive() && motors[0].isBusy()) {
                  telemetry.addData("Target", target);
                  telemetry.addData("Current", motors[0].getCurrentPosition());
                  telemetry.update();
-
-
-
-        //}
+        }
 
 
         // target = motors[0].getCurrentPosition() + 2000;
@@ -162,64 +165,73 @@ public class Thing extends LinearOpMode {
         // frontRightDrive.setPower(power);
         // backLeftDrive.setPower((-power));
         // backRightDrive.setPower(power);
-        fl.setTargetPosition(fl.getCurrentPosition() - target_delta);
-        fr.setTargetPosition(fl.getCurrentPosition() + target_delta);
-        bl.setTargetPosition(fl.getCurrentPosition() - target_delta);
-        br.setTargetPosition(fl.getCurrentPosition() + target_delta);
-
-        fl.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        fr.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        bl.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        br.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-
         fl.setPower((-power));
         fr.setPower(power);
         bl.setPower((-power));
         br.setPower(power);
+
+        fl.setTargetPosition(fl.getCurrentPosition() - target_delta);
+        fr.setTargetPosition(fr.getCurrentPosition() + target_delta);
+        bl.setTargetPosition(bl.getCurrentPosition() - target_delta);
+        br.setTargetPosition(br.getCurrentPosition() + target_delta);
+
+//        fl.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+//        fr.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+//        bl.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+//        br.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
     }
     private void turnC( double power, int target_delta){
         //C=Clockwise
         fl.setTargetPosition(fl.getCurrentPosition() + target_delta);
-        fr.setTargetPosition(fl.getCurrentPosition() - target_delta);
-        bl.setTargetPosition(fl.getCurrentPosition() + target_delta);
-        br.setTargetPosition(fl.getCurrentPosition() - target_delta);
-
-        fl.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        fr.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        bl.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        br.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
+        fr.setTargetPosition(fr.getCurrentPosition() - target_delta);
+        bl.setTargetPosition(bl.getCurrentPosition() + target_delta);
+        br.setTargetPosition(br.getCurrentPosition() - target_delta);
 
         fl.setPower(power);
-        fr.setPower((-power));
+        fr.setPower(power);
         bl.setPower(power);
-        br.setPower((-power));
+        br.setPower(power);
+//        fl.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+//        fr.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+//        bl.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+//        br.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+
+//        fl.setPower(power);
+//        fr.setPower((-power));
+//        bl.setPower(power);
+//        br.setPower((-power));
     }
     private void strafeLeft( double power, int target_delta){
 
-        fl.setTargetPosition(fl.getCurrentPosition() + target_delta);
-        fr.setTargetPosition(fl.getCurrentPosition() - target_delta);
-        bl.setTargetPosition(fl.getCurrentPosition() - target_delta);
-        br.setTargetPosition(fl.getCurrentPosition() + target_delta);
-
-        fl.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        fr.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        bl.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        br.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-
         fl.setPower(power);
-        fr.setPower((-power));
+        fr.setPower((power));
         bl.setPower(power);
-        br.setPower((-power));
+        br.setPower((power));
+
+        fl.setTargetPosition(fl.getCurrentPosition() + target_delta);
+        fr.setTargetPosition(fr.getCurrentPosition() - target_delta);
+        bl.setTargetPosition(bl.getCurrentPosition() - target_delta);
+        br.setTargetPosition(br.getCurrentPosition() + target_delta);
+
+//        fl.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+//        fr.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+//        bl.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+//        br.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+
+//        fl.setPower(power);
+//        fr.setPower((-power));
+//        bl.setPower(power);
+//        br.setPower((-power));
     }
     private void strafeRight( double power, int target_delta){
 
         fl.setTargetPosition(fl.getCurrentPosition() - target_delta);
-        fr.setTargetPosition(fl.getCurrentPosition() + target_delta);
-        bl.setTargetPosition(fl.getCurrentPosition() + target_delta);
-        br.setTargetPosition(fl.getCurrentPosition() - target_delta);
+        fr.setTargetPosition(fr.getCurrentPosition() + target_delta);
+        bl.setTargetPosition(bl.getCurrentPosition() + target_delta);
+        br.setTargetPosition(br.getCurrentPosition() - target_delta);
 
         fl.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         fr.setMode(DcMotor.RunMode.RUN_TO_POSITION);
