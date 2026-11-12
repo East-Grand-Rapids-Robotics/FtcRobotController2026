@@ -30,7 +30,7 @@ public class Thing extends LinearOpMode {
         fr = hardwareMap.get(DcMotor.class, "fr");
         //nectaropen = hardwareMap.get(Servo.class, "necter open");
         openpollen = hardwareMap.get(Servo.class, "open pollen");
-        //shootLpollen = hardwareMap.get(DcMotor.class, "shoot L pollen");
+        shootLpollen = hardwareMap.get(DcMotor.class, "shoot L pollen");
         fl.setDirection(DcMotor.Direction.REVERSE);
         bl.setDirection(DcMotor.Direction.REVERSE);
 
@@ -42,13 +42,24 @@ public class Thing extends LinearOpMode {
         };
 
         waitForStart();
-        //((DcMotorEx) shootLpollen).setVelocity(2000);
+        ((DcMotorEx) shootLpollen).setVelocity(2000);
         openpollen.setPosition(1);
         for (DcMotor motor : motors) {
             motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         }
-
+        sleep(5000);
+        //SHOOT!!!!
+        openpollen.setPosition(0);
+        ((DcMotorEx) shootLpollen).setVelocity(2000);
+        sleep(5000);
+        openpollen.setPosition(1);
+        ((DcMotorEx) shootLpollen).setVelocity(1500);
+        while (opModeIsActive() && motors[0].isBusy()) {
+            telemetry.addData("Current", motors[0].getCurrentPosition());
+            telemetry.update();
+        }
+        //start moving here
         int target = motors[0].getCurrentPosition() - 200;
         //24 inches =1000 ticks, 1000 ticks=90 degree turn 1900
         for (DcMotor motor : motors) {
@@ -62,17 +73,10 @@ public class Thing extends LinearOpMode {
             telemetry.update();
             //idle();
         }
-        for (DcMotor motor : motors) {
-            motor.setPower(0);
-        }
-        //sleep(5000);
-        //SHOOT!!!!
-//        openpollen.setPosition(0);
-//        ((DcMotorEx) shootLpollen).setVelocity(2000);
-//        sleep(5000);
-//        openpollen.setPosition(1);
-//        ((DcMotorEx) shootLpollen).setVelocity(1500);
         turnC(0.5, 1800);
+//        for (DcMotor motor : motors) {
+//            motor.setPower(0);
+//        }
         while (opModeIsActive() && motors[0].isBusy()) {
             telemetry.addData("Target", target);
             telemetry.addData("Current", motors[0].getCurrentPosition());
@@ -81,13 +85,42 @@ public class Thing extends LinearOpMode {
         for (DcMotor motor : motors) {
             motor.setPower(0);
         }
-        strafeLeft(0.5, 800);
+        strafeLeft(0.5, 1400);
         while (opModeIsActive() && motors[0].isBusy()) {
                  telemetry.addData("Target", target);
                  telemetry.addData("Current", motors[0].getCurrentPosition());
                  telemetry.update();
         }
+        target = motors[0].getCurrentPosition() + 3000;
+        for (DcMotor motor : motors) {
+            motor.setTargetPosition(target);
+            motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            motor.setPower(0.5);
+        }
+        while (opModeIsActive() && motors[0].isBusy()) {
+            telemetry.addData("Target", target);
+            telemetry.addData("Current", motors[0].getCurrentPosition());
+            telemetry.update();
+        }
+        strafeLeft(0.5, 900);
+        while (opModeIsActive() && motors[0].isBusy()) {
+            telemetry.addData("Target", target);
+            telemetry.addData("Current", motors[0].getCurrentPosition());
+            telemetry.update();
+        }
+        target = motors[0].getCurrentPosition() + 150;
+        for (DcMotor motor : motors) {
+            motor.setTargetPosition(target);
+            motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            motor.setPower(0.5);
+        }
+        while (opModeIsActive() && motors[0].isBusy()) {
+            telemetry.addData("Target", target);
+            telemetry.addData("Current", motors[0].getCurrentPosition());
+            telemetry.update();
+        }
 
+       //End :)
 
         // target = motors[0].getCurrentPosition() + 2000;
         // for (DcMotor motor : motors) {
@@ -210,38 +243,26 @@ public class Thing extends LinearOpMode {
         bl.setPower(power);
         br.setPower((power));
 
-        fl.setTargetPosition(fl.getCurrentPosition() + target_delta);
-        fr.setTargetPosition(fr.getCurrentPosition() - target_delta);
-        bl.setTargetPosition(bl.getCurrentPosition() - target_delta);
-        br.setTargetPosition(br.getCurrentPosition() + target_delta);
-
-//        fl.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-//        fr.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-//        bl.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-//        br.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-
-//        fl.setPower(power);
-//        fr.setPower((-power));
-//        bl.setPower(power);
-//        br.setPower((-power));
-    }
-    private void strafeRight( double power, int target_delta){
-
         fl.setTargetPosition(fl.getCurrentPosition() - target_delta);
         fr.setTargetPosition(fr.getCurrentPosition() + target_delta);
         bl.setTargetPosition(bl.getCurrentPosition() + target_delta);
         br.setTargetPosition(br.getCurrentPosition() - target_delta);
 
-        fl.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        fr.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        bl.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        br.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
+
+    }
+    private void strafeRight( double power, int target_delta){
 
         fl.setPower(power);
-        fr.setPower((-power));
+        fr.setPower(power);
         bl.setPower(power);
-        br.setPower((-power));
+        br.setPower(power);
+
+        fl.setTargetPosition(fl.getCurrentPosition() + target_delta);
+        fr.setTargetPosition(fr.getCurrentPosition() - target_delta);
+        bl.setTargetPosition(bl.getCurrentPosition() - target_delta);
+        br.setTargetPosition(br.getCurrentPosition() + target_delta);
+
+
     }
 }
