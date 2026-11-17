@@ -6,10 +6,23 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.robotcore.external.JavaUtil;
+import org.firstinspires.ftc.vision.apriltag.AprilTagClusterDetection;
 
 @TeleOp(name = "24371Movement (Blocks to Java)")
 public class Movement24371 extends LinearOpMode {
+
+  // Auto-align to a scoring hive while gamepad 1 holds dpad down.
+  // Tune these on the robot. If it overshoots and wobbles, lower ALIGN_GAIN or ALIGN_MAX_TURN.
+  // If it stops short and creeps, raise ALIGN_MIN_TURN.
+  private static final double ALIGN_GAIN = 0.02;            // turn power per degree of bearing
+  private static final double ALIGN_MAX_TURN = 0.25;        // slow turn
+  private static final double ALIGN_MIN_TURN = 0.08;        // enough power to actually move the robot
+  private static final double ALIGN_TOLERANCE_DEG = 1.5;    // "on center" when bearing is within this
+
+  private AprilTagDetector tags;
+  private boolean aligned = false;
 
   private Servo necteropen;
   private Servo openpollen;
@@ -51,6 +64,7 @@ public class Movement24371 extends LinearOpMode {
     bl.setDirection(DcMotor.Direction.REVERSE);
     fl.setDirection(DcMotor.Direction.REVERSE);
     intake.setDirection(DcMotor.Direction.REVERSE);
+    tags = new AprilTagDetector(hardwareMap);
     // Put initialization blocks here.
     waitForStart();
     motor_multiplier = 0.8;
@@ -98,13 +112,59 @@ public class Movement24371 extends LinearOpMode {
       } else {
         openpollen.setPosition(1);
       }
-      if (gamepad1.left_stick_y != 24371) {
+      if (gamepad1.dpad_down) {
+        alignToScoringHive();
+      } else {
+        aligned = false;
         bl.setPower(motor_multiplier * gamepad1.left_stick_x * -1 + motor_multiplier * gamepad1.right_stick_x + motor_multiplier * gamepad1.left_stick_y * -1);
         br.setPower(motor_multiplier * gamepad1.left_stick_x + motor_multiplier * gamepad1.right_stick_x * -1 + motor_multiplier * gamepad1.left_stick_y * -1);
         fl.setPower(motor_multiplier * gamepad1.left_stick_x + motor_multiplier * gamepad1.right_stick_x + motor_multiplier * gamepad1.left_stick_y * -1);
         fr.setPower(motor_multiplier * gamepad1.left_stick_x * -1 + motor_multiplier * gamepad1.right_stick_x * -1 + motor_multiplier * gamepad1.left_stick_y * -1);
-        telemetry.update();
       }
+      telemetry.update();
     }
+    tags.close();
+  }
+
+  /**
+   * One loop of turning toward the closest scoring hive. Stops the drive if no hive is
+   * visible, and rumbles both gamepads once when the robot first gets on center.
+   */
+  private void alignToScoringHive() {
+    AprilTagClusterDetection hive = tags.getScoringCluster();
+    if (hive == null) {
+      setTurnPower(0);
+      aligned = false;
+      telemetry.addData("Align", "no scoring hive in view");
+      return;
+    }
+
+    // Positive bearing means the hive is to the left, so turn counterclockwise.
+    double bearing = hive.ftcPose.bearing;
+    telemetry.addData("Align", "%s  bearing %.1f deg  range %.1f in  (%d%% of tags)",
+        hive.metadata.name, bearing, hive.ftcPose.range, hive.percentClusterFound);
+
+    if (Math.abs(bearing) <= ALIGN_TOLERANCE_DEG) {
+      setTurnPower(0);
+      if (!aligned) {
+        gamepad1.rumble(300);
+        gamepad2.rumble(300);   // tells driver 2 it's time to shoot
+        aligned = true;
+      }
+      return;
+    }
+
+    aligned = false;
+    double turn = Range.clip(Math.abs(bearing) * ALIGN_GAIN, ALIGN_MIN_TURN, ALIGN_MAX_TURN);
+    // In this OpMode a positive turn (right stick right) is clockwise, so a hive on the left needs negative.
+    setTurnPower(bearing > 0 ? -turn : turn);
+  }
+
+  /** Spins in place. Positive is clockwise, same as pushing the right stick right. */
+  private void setTurnPower(double turn) {
+    fl.setPower(turn);
+    bl.setPower(turn);
+    fr.setPower(-turn);
+    br.setPower(-turn);
   }
 }
