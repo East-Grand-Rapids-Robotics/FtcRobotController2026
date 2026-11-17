@@ -80,12 +80,12 @@ public class Movement24371 extends LinearOpMode {
       telemetry.addData("RSX", Double.parseDouble(JavaUtil.formatNumber(gamepad1.right_stick_x, 2)));
       // Put loop blocks here.
       if (gamepad1.right_trigger == 1) {
-        intake.setPower(1);
+        intake.setPower(-1);
         rollerL.setPower(1);
         rollerR.setPower(1);
       } else {
         if (gamepad1.left_trigger == 1) {
-          intake.setPower(-0.5);
+          intake.setPower(0.5);
         } else {
           intake.setPower(0);
           rollerL.setPower(0);

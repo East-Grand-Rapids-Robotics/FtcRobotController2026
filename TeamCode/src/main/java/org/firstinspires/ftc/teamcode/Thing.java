@@ -48,7 +48,7 @@ public class Thing extends LinearOpMode {
             motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         }
-        sleep(5000);
+//        sleep(5000);
         //SHOOT!!!!
         openpollen.setPosition(0);
         ((DcMotorEx) shootLpollen).setVelocity(2000);
