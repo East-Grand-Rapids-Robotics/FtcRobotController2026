@@ -21,8 +21,12 @@ public class Movement24371 extends LinearOpMode {
   private static final double ALIGN_MIN_TURN = 0.08;        // enough power to actually move the robot
   private static final double ALIGN_TOLERANCE_DEG = 1.5;    // "on center" when bearing is within this
 
+  private static final double RANGE_TARGET = 100; // TODO Tune this to the shootings in the units of measure that FTC.pose.range gives
+  private static final double RANGE_TOLERANCE = 5; // TODO Tune this to the shootings in the units of measure that FTC.pose.range gives
   private AprilTagDetector tags;
   private boolean aligned = false;
+
+  private boolean in_range = false;
 
   private Servo necteropen;
   private Servo openpollen;
@@ -115,15 +119,58 @@ public class Movement24371 extends LinearOpMode {
       if (gamepad1.dpad_down) {
         alignToScoringHive();
       } else {
-        aligned = false;
-        bl.setPower(motor_multiplier * gamepad1.left_stick_x * -1 + motor_multiplier * gamepad1.right_stick_x + motor_multiplier * gamepad1.left_stick_y * -1);
-        br.setPower(motor_multiplier * gamepad1.left_stick_x + motor_multiplier * gamepad1.right_stick_x * -1 + motor_multiplier * gamepad1.left_stick_y * -1);
-        fl.setPower(motor_multiplier * gamepad1.left_stick_x + motor_multiplier * gamepad1.right_stick_x + motor_multiplier * gamepad1.left_stick_y * -1);
-        fr.setPower(motor_multiplier * gamepad1.left_stick_x * -1 + motor_multiplier * gamepad1.right_stick_x * -1 + motor_multiplier * gamepad1.left_stick_y * -1);
+        if (gamepad1.dpad_up) {
+          moveToRange();
+        } else {
+          aligned = false;
+          bl.setPower(motor_multiplier * gamepad1.left_stick_x * -1 + motor_multiplier * gamepad1.right_stick_x + motor_multiplier * gamepad1.left_stick_y * -1);
+          br.setPower(motor_multiplier * gamepad1.left_stick_x + motor_multiplier * gamepad1.right_stick_x * -1 + motor_multiplier * gamepad1.left_stick_y * -1);
+          fl.setPower(motor_multiplier * gamepad1.left_stick_x + motor_multiplier * gamepad1.right_stick_x + motor_multiplier * gamepad1.left_stick_y * -1);
+          fr.setPower(motor_multiplier * gamepad1.left_stick_x * -1 + motor_multiplier * gamepad1.right_stick_x * -1 + motor_multiplier * gamepad1.left_stick_y * -1);
+        }
       }
       telemetry.update();
     }
     tags.close();
+  }
+
+  private void moveToRange() {
+    AprilTagClusterDetection hive = tags.getScoringCluster();
+    if (hive == null) {
+      setRangePower(0);
+      in_range = false;
+      telemetry.addData("Range", "no scoring hive in view");
+      return;
+    }
+
+    // Positive bearing means the hive is to the left, so turn counterclockwise.
+    double range = hive.ftcPose.range;
+    telemetry.addData("Align", "%s  bearing %.1f deg  range %.1f in  (%d%% of tags)",
+            hive.metadata.name, hive.ftcPose.bearing, hive.ftcPose.range, hive.percentClusterFound);
+    if (Math.abs(range-RANGE_TARGET) <= RANGE_TOLERANCE) {
+      setRangePower(0);
+      if (!in_range) {
+        gamepad1.rumble(300);
+        gamepad2.rumble(300);   // tells driver 2 it's time to shoot
+        in_range = true;
+      }
+      return;
+    }
+    in_range = false;
+
+    if (range < RANGE_TARGET) {
+      setRangePower(0.5);
+    }
+    if (range > RANGE_TARGET) {
+      setRangePower(-0.5);
+    }
+  }
+
+  private void setRangePower(double power) {
+    fl.setPower(power);
+    bl.setPower(power);
+    fr.setPower(power);
+    br.setPower(power);
   }
 
   /**
